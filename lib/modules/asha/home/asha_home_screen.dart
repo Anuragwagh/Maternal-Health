@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../patient/home/medicine_store.dart';
 import '../../../app_state.dart';
+import '../visits/log_visit_bottom_sheet.dart';
+import '../../../core/models/patient_risk_profile.dart';
 
 class AshaHomeScreen extends StatefulWidget {
   const AshaHomeScreen({super.key});
@@ -28,8 +31,9 @@ class _AshaHomeScreenState extends State<AshaHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = AppState.instance;
-    final medicineAlert = _store.ashaAlertActive;
+    final state = context.watch<AppState>();
+    final store = context.watch<MedicineStore>();
+    final medicineAlert = store.ashaAlertActive;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F7FF),
@@ -37,42 +41,141 @@ class _AshaHomeScreenState extends State<AshaHomeScreen> {
         title: Text(state.translate('ASHA Management', 'आशा प्रबंधन', 'आशा व्यवस्थापन')),
         backgroundColor: const Color(0xFFAEC6CF),
       ),
-      body: ListView(
+        body: _buildBody(context, state, medicineAlert),
+      );
+    }
+  
+    Widget _buildBody(BuildContext context, AppState state, bool medicineAlert) {
+      // Dynamic list of patients
+      final profiles = [
+        if (medicineAlert)
+          const PatientRiskProfile(
+            patientId: 'Me',
+            age: 26,
+            systolicBpHistory: [120],
+            diastolicBpHistory: [80],
+            hemoglobinLevel: 11.5,
+            hasPreviousComplications: false,
+            missedMedications3PlusDays: true,
+          ),
+        const PatientRiskProfile(
+            patientId: 'Sita Devi',
+            age: 17,
+            systolicBpHistory: [145],
+            diastolicBpHistory: [95],
+            hemoglobinLevel: 10.5,
+            hasPreviousComplications: false,
+            missedMedications3PlusDays: false,
+        ),
+        const PatientRiskProfile(
+            patientId: 'Meena Rao',
+            age: 28,
+            systolicBpHistory: [110],
+            diastolicBpHistory: [70],
+            hemoglobinLevel: 8.5,
+            hasPreviousComplications: false,
+            missedMedications3PlusDays: false,
+        ),
+        const PatientRiskProfile(
+            patientId: 'Pooja Singh',
+            age: 25,
+            systolicBpHistory: [115],
+            diastolicBpHistory: [75],
+            hemoglobinLevel: 12.0,
+            hasPreviousComplications: false,
+            missedMedications3PlusDays: false,
+        ),
+      ];
+  
+      // Sort patients by priority
+      profiles.sort((a, b) => a.triagePriority.compareTo(b.triagePriority));
+
+      return ListView(
         padding: const EdgeInsets.all(20),
         children: [
-
           // ── Medicine missed alert banner ────────────────────────────────────
           if (medicineAlert) ...[
             _buildMedicineMissedAlert(state),
             const SizedBox(height: 16),
           ],
-
+  
           _buildSummaryCard(medicineAlert, state),
+          const SizedBox(height: 16),
+          
+          InkWell(
+            onTap: () => Navigator.pushNamed(context, '/incentive_tracker'),
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFAEC6CF), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFAEC6CF).withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.star, color: Colors.orange, size: 30),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          state.translate('Monthly Impact & Incentives', 'मासिक प्रभाव और प्रोत्साहन', 'मासिक प्रभाव आणि प्रोत्साहन'),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          state.translate('Tap to view progress', 'प्रगति देखने के लिए टैप करें', 'प्रगती पाहण्यासाठी टॅप करा'),
+                          style: const TextStyle(fontSize: 13, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
+                ],
+              ),
+            ),
+          ),
+          
           const SizedBox(height: 24),
-
+  
           Text(
             state.translate('Your Patients', 'आपके मरीज', 'तुमचे रुग्ण'),
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-
-          // Patient with medicine alert shown at top if active
-          if (medicineAlert)
-            _buildPatientTile(
-              state.translate('Patient (You)', 'मरीज (आप)', 'रुग्ण (तुम्ही)'),
+  
+          // Render sorted patient list
+          ...profiles.map((p) {
+            Color color;
+            if (p.missedMedications3PlusDays || p.isHighRiskPregnancy) {
+              color = Colors.red.shade50;
+            } else if (p.hasModerateAnemia) {
+              color = Colors.orange.shade50;
+            } else {
+              color = Colors.green.shade50;
+            }
+            
+            return _buildPatientTile(
+              context,
+              p.patientId == 'Me' ? state.translate('Patient (You)', 'मरीज (आप)', 'रुग्ण (तुम्ही)') : p.patientId,
               state.translate('Current', 'वर्तमान', 'चालू'),
-              state.translate('🚨 Medicines Missed 3+ Days', '🚨 दवाएं 3+ दिन छूटीं', '🚨 औषधे ३+ दिवस चुकली'),
-              Colors.red.shade50,
-              hasMedicineAlert: true,
-            ),
-
-          _buildPatientTile('Sita Devi', state.translate('8th Month', '8वां महीना', '८ वा महिना'), state.translate('High BP Alert', 'हाई बीपी अलर्ट', 'उच्च बीपी अलर्ट'), Colors.red[50]!),
-          _buildPatientTile('Pooja Singh', state.translate('4th Month', '4था महीना', '४ था महिना'), state.translate('Stable', 'स्थिर', 'स्थिर'), Colors.green[50]!),
-          _buildPatientTile('Meena Rao', state.translate('6th Month', '6ठा महीना', '६ वा महिना'), state.translate('Due for Vaccine', 'टीकाकरण देय', 'लसीकरण देय आहे'), Colors.orange[50]!),
+              p.primaryRiskLabel,
+              color,
+              hasMedicineAlert: p.missedMedications3PlusDays,
+              isRedSticker: p.isHighRiskPregnancy,
+            );
+          }),
         ],
-      ),
-    );
-  }
+      );
+    }
 
   Widget _buildMedicineMissedAlert(AppState state) {
     return Container(
@@ -83,7 +186,7 @@ class _AshaHomeScreenState extends State<AshaHomeScreen> {
         border: Border.all(color: Colors.red.shade300, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.red.withOpacity(0.15),
+            color: Colors.red.withValues(alpha: 0.15),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -207,20 +310,35 @@ class _AshaHomeScreenState extends State<AshaHomeScreen> {
   }
 
   Widget _buildPatientTile(
+    BuildContext context,
     String name,
     String month,
     String status,
     Color color, {
     bool hasMedicineAlert = false,
+    bool isRedSticker = false,
   }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: color,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: (hasMedicineAlert || isRedSticker) ? Colors.red.shade200 : Colors.transparent, width: 1.5),
+      ),
       child: ListTile(
+        onTap: () {
+          LogVisitBottomSheet.show(context, name);
+        },
         contentPadding: const EdgeInsets.all(16),
         leading: CircleAvatar(
-          backgroundColor: hasMedicineAlert ? Colors.red : const Color(0xFFAEC6CF),
-          child: Text(name[0], style: const TextStyle(color: Colors.white)),
+          radius: 25,
+          backgroundColor: hasMedicineAlert || isRedSticker ? Colors.red : const Color(0xFFAEC6CF),
+          child: Icon(
+            isRedSticker ? Icons.warning_rounded : Icons.person,
+            color: Colors.white,
+            size: 28,
+          ),
         ),
         title: Row(
           children: [

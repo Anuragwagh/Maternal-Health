@@ -8,7 +8,15 @@ class AshaLoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = AppState.instance;
     return Scaffold(
-      appBar: AppBar(title: Text(state.translate('ASHA Login', 'आशा लॉगिन', 'आशा लॉगिन'))),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -30,7 +38,10 @@ class AshaLoginScreen extends StatelessWidget {
             const SizedBox(height: 40),
             ElevatedButton(
               onPressed: () => Navigator.pushReplacementNamed(context, '/asha_home'),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFAEC6CF)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                foregroundColor: Colors.white,
+              ),
               child: Text(state.translate('Login', 'लॉगिन करें', 'लॉगिन करा')),
             ),
           ],

@@ -9,18 +9,18 @@ class LanguageSelectionScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFF9F9), Color(0xFFFFD3B6)],
+            colors: [Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.tertiary],
           ),
         ),
         child: SafeArea(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.language, size: 80, color: Color(0xFFFF8B94)),
+              Icon(Icons.language, size: 100, color: Theme.of(context).colorScheme.primary),
               const SizedBox(height: 24),
               const Text(
                 'Choose Language',
@@ -31,11 +31,11 @@ class LanguageSelectionScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 18, color: Colors.grey),
               ),
               const SizedBox(height: 48),
-              _buildLangButton(context, 'English', 'A', const Color(0xFFFF8B94), AppLanguage.english),
+              _buildLangButton(context, 'English', 'A', Theme.of(context).colorScheme.primary, AppLanguage.english),
               const SizedBox(height: 20),
-              _buildLangButton(context, 'हिंदी (Hindi)', 'अ', const Color(0xFFFFAAA5), AppLanguage.hindi),
+              _buildLangButton(context, 'हिंदी (Hindi)', 'अ', Theme.of(context).colorScheme.secondary, AppLanguage.hindi),
               const SizedBox(height: 20),
-              _buildLangButton(context, 'मराठी (Marathi)', 'म', const Color(0xFFFFD3B6), AppLanguage.marathi),
+              _buildLangButton(context, 'मराठी (Marathi)', 'म', Theme.of(context).colorScheme.tertiary, AppLanguage.marathi),
             ],
           ),
         ),
@@ -59,7 +59,7 @@ class LanguageSelectionScreen extends StatelessWidget {
         ),
         onPressed: () {
           AppState.instance.setLanguage(lang);
-          Navigator.pushNamed(context, '/selection');
+          Navigator.pushReplacementNamed(context, '/consent');
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -67,7 +67,7 @@ class LanguageSelectionScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Text(

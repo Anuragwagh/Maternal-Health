@@ -4,7 +4,9 @@ import 'vaccine_screen.dart';
 import 'medicine_screen.dart';
 import 'patient_history_screen.dart';
 import 'chatbot_widget.dart';
+import 'nearest_clinic_screen.dart';
 import '../../../app_state.dart';
+import '../emergency/sos_bottom_sheet.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   const PatientHomeScreen({super.key});
@@ -18,6 +20,15 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final state = AppState.instance;
+    
+    // Calculate days to next 9th of the month (PMSMA date)
+    final now = DateTime.now();
+    var next9th = DateTime(now.year, now.month, 9);
+    if (now.day > 9) {
+      next9th = DateTime(now.year, now.month + 1, 9);
+    }
+    final daysToCheckup = next9th.difference(now).inDays;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFFFF9F9),
       appBar: AppBar(
@@ -46,9 +57,22 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              state.translate('Hello, Mother! 👋', 'नमस्ते माताजी! 👋', 'नमस्कार माताजी! 👋'),
-              style: const TextStyle(fontSize: 27, fontWeight: FontWeight.bold, color: Color(0xFF4A4A4A)),
+            Row(
+              children: [
+                Text(
+                  state.translate('Hello, Mother! 👋', 'नमस्ते माताजी! 👋', 'नमस्कार माताजी! 👋'),
+                  style: const TextStyle(fontSize: 27, fontWeight: FontWeight.bold, color: Color(0xFF4A4A4A)),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.volume_up_outlined, color: Colors.blue, size: 32),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(state.translate('Audio playback started', 'ऑडियो प्लेबैक शुरू हुआ', 'ऑडिओ प्लेबॅक सुरू झाले'))),
+                    );
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             Container(
@@ -58,7 +82,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -66,7 +90,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               ),
               child: Row(
                 children: [
-                   const Icon(Icons.info_outline, color: Color(0xFFFF8B94), size: 40),
+                   Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary, size: 48),
                    const SizedBox(width: 16),
                    Expanded(
                      child: Column(
@@ -77,7 +101,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                            style: const TextStyle(fontSize: 16, color: Colors.grey),
                          ),
                          Text(
-                           state.translate('In 3 days', '3 दिनों में', '3 दिवसात'),
+                           state.translate('In $daysToCheckup days (9th of Month)', '$daysToCheckup दिनों में (महीने की 9 तारीख)', '$daysToCheckup दिवसात (महिन्याची ९ तारीख)'),
                            style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
                          ),
                        ],
@@ -92,7 +116,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               state.translate('Diet Plans', 'भोजन योजना', 'आहार योजना'),
               state.translate('What to eat', 'क्या खाएं', 'काय खावे'),
               Icons.restaurant_menu,
-              const Color(0xFFFFD3B6),
+              Theme.of(context).colorScheme.tertiary,
               () => Navigator.push(context, MaterialPageRoute(builder: (context) => const DietPlanScreen())),
             ),
             const SizedBox(height: 20),
@@ -101,7 +125,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               state.translate('Vaccines', 'टीकाकरण', 'लसीकरण'),
               state.translate('Your health shots', 'आपके टीके', 'तुमची लस'),
               Icons.vaccines_outlined,
-              const Color(0xFFAEC6CF),
+              Theme.of(context).colorScheme.secondary,
               () => Navigator.push(context, MaterialPageRoute(builder: (context) => const VaccineScreen())),
             ),
             const SizedBox(height: 20),
@@ -110,8 +134,17 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               state.translate('Medicines', 'दवाइयॉं', 'औषधे'),
               state.translate('Daily pills', 'दैनिक दवाएं', 'रोजची औषधे'),
               Icons.medication_outlined,
-              const Color(0xFFB4E6B4),
+              const Color(0xFF90E0EF),
               () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MedicineScreen())),
+            ),
+            const SizedBox(height: 20),
+            _buildActionCard(
+              context,
+              state.translate('Find Nearest Clinic', 'निकटतम क्लिनिक खोजें', 'जवळचे क्लिनिक शोधा'),
+              state.translate('Locate PHC/Hospital', 'PHC/अस्पताल खोजें', 'PHC/रुग्णालय शोधा'),
+              Icons.local_hospital_outlined,
+              Theme.of(context).colorScheme.tertiary,
+              () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NearestClinicScreen())),
             ),
             const SizedBox(height: 32),
 
@@ -119,9 +152,24 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           ],
         ),
       ),
-      floatingActionButton: const Padding(
-        padding: EdgeInsets.only(bottom: 8.0),
-        child: ChatbotWidget(),
+      floatingActionButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton.extended(
+            onPressed: () => SosBottomSheet.show(context),
+            backgroundColor: Colors.red,
+            icon: const Icon(Icons.emergency, color: Colors.white),
+            label: Text(
+              state.translate('SOS', 'आपातकाल', 'तातडीचे'),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8.0),
+            child: ChatbotWidget(),
+          ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -135,52 +183,55 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     Color color,
     VoidCallback onTap,
   ) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        height: 120,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: color.withAlpha(50),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          height: 120,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: color.withAlpha(50),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
-              child: Icon(icon, size: 40, color: Colors.black87),
-            ),
-            const SizedBox(width: 24),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(fontSize: 15, color: Colors.black54),
-                  ),
-                ],
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, size: 52, color: Colors.black87),
               ),
-            ),
-            const Icon(Icons.arrow_forward_ios, size: 24, color: Colors.black38),
-          ],
+              const SizedBox(width: 24),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(fontSize: 15, color: Colors.black54),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 24, color: Colors.black38),
+            ],
+          ),
         ),
       ),
     );

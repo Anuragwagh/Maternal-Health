@@ -192,7 +192,6 @@ class _ChatbotWidgetState extends State<ChatbotWidget>
       case AppLanguage.marathi:
         return ChatLanguage.marathi;
       case AppLanguage.english:
-      default:
         return ChatLanguage.english;
     }
   }
@@ -322,42 +321,43 @@ class _ChatbotWidgetState extends State<ChatbotWidget>
   @override
   Widget build(BuildContext context) {
     return Stack(
+      clipBehavior: Clip.none,
       alignment: Alignment.bottomRight,
       children: [
         // Chat panel
         if (_isOpen)
-          ScaleTransition(
-            scale: _scaleAnim,
-            alignment: Alignment.bottomRight,
-            child: _buildChatPanel(context),
+          Positioned(
+            bottom: 70,
+            right: 0,
+            child: ScaleTransition(
+              scale: _scaleAnim,
+              alignment: Alignment.bottomRight,
+              child: _buildChatPanel(context),
+            ),
           ),
 
         // FAB
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: GestureDetector(
-            onTap: _toggleChat,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 62,
-              height: 62,
-              decoration: BoxDecoration(
-                color: _isOpen ? Colors.grey.shade600 : const Color(0xFFFF8B94),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFF8B94).withOpacity(0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Icon(
-                _isOpen ? Icons.close : Icons.chat_bubble_rounded,
-                color: Colors.white,
-                size: 28,
-              ),
+        GestureDetector(
+          onTap: _toggleChat,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 62,
+            height: 62,
+            decoration: BoxDecoration(
+              color: _isOpen ? Colors.grey.shade600 : Theme.of(context).colorScheme.primary,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              _isOpen ? Icons.close : Icons.chat_bubble_outline,
+              color: Colors.white,
+              size: 36,
             ),
           ),
         ),
@@ -376,7 +376,7 @@ class _ChatbotWidgetState extends State<ChatbotWidget>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -481,7 +481,7 @@ class _ChatbotWidgetState extends State<ChatbotWidget>
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -526,9 +526,9 @@ class _ChatbotWidgetState extends State<ChatbotWidget>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFD3B6).withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFFF8B94).withOpacity(0.3)),
+                      border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
                     ),
                     child: Text(
                       faq.question(_lang),

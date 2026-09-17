@@ -22,8 +22,6 @@ class AppState extends ChangeNotifier {
       case AppLanguage.marathi:
         return mr;
       case AppLanguage.english:
-      default:
-        return en;
-    }
+        return en;    }
   }
 }

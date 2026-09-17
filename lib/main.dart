@@ -5,11 +5,30 @@ import 'modules/patient/auth/login_screen.dart';
 import 'modules/patient/auth/otp_screen.dart';
 import 'modules/patient/home/patient_home_screen.dart';
 import 'modules/asha/auth/asha_login_screen.dart';
+import 'modules/asha/auth/asha_pin_login_screen.dart';
 import 'modules/asha/home/asha_home_screen.dart';
+import 'modules/common/consent_screen.dart';
+import 'modules/supervisor/home/supervisor_dashboard_screen.dart';
+import 'modules/caregiver/home/caregiver_home_screen.dart';
+import 'modules/asha/incentives/incentive_tracker_screen.dart';
 import 'app_state.dart';
+import 'modules/patient/home/medicine_store.dart';
+import 'package:provider/provider.dart';
+import 'core/database/local_db.dart';
 
-void main() {
-  runApp(const MaternalHealthApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await LocalDb.init();
+  
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: AppState.instance),
+        ChangeNotifierProvider.value(value: MedicineStore.instance),
+      ],
+      child: const MaternalHealthApp(),
+    ),
+  );
 }
 
 class MaternalHealthApp extends StatelessWidget {
@@ -17,20 +36,19 @@ class MaternalHealthApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: AppState.instance,
-      builder: (context, _) {
+    return Consumer<AppState>(
+      builder: (context, appState, _) {
         return MaterialApp(
           title: 'Maternal Health',
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFFFF8B94),
-              primary: const Color(0xFFFF8B94),
-              secondary: const Color(0xFFFFAAA5),
-              tertiary: const Color(0xFFFFD3B6),
-              surface: const Color(0xFFFFF9F9),
+              seedColor: const Color(0xFF0077B6),
+              primary: const Color(0xFF0077B6),
+              secondary: const Color(0xFF00B4D8),
+              tertiary: const Color(0xFFCAF0F8),
+              surface: const Color(0xFFF8F9FA),
             ),
             textTheme: const TextTheme(
               headlineMedium: TextStyle(
@@ -73,12 +91,17 @@ class MaternalHealthApp extends StatelessWidget {
           initialRoute: '/language',
           routes: {
             '/language': (context) => const LanguageSelectionScreen(),
+            '/consent': (context) => const ConsentScreen(),
             '/selection': (context) => const RoleSelectionScreen(),
             '/login': (context) => const LoginScreen(),
             '/otp': (context) => const OtpScreen(),
             '/patient_home': (context) => const PatientHomeScreen(),
             '/asha_login': (context) => const AshaLoginScreen(),
+            '/asha_pin_login': (context) => const AshaPinLoginScreen(),
             '/asha_home': (context) => const AshaHomeScreen(),
+            '/incentive_tracker': (context) => const IncentiveTrackerScreen(),
+            '/supervisor_home': (context) => const SupervisorDashboardScreen(),
+            '/caregiver_home': (context) => const CaregiverHomeScreen(),
           },
         );
       },
