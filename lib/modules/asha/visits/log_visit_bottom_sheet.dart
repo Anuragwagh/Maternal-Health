@@ -1,20 +1,29 @@
 import 'package:flutter/material.dart';
-import '../../../app_state.dart';
 import 'package:provider/provider.dart';
+import '../../../app_state.dart';
+import '../../../core/repositories/visit_repository.dart';
 
 class LogVisitBottomSheet extends StatelessWidget {
+  final String patientId;
   final String patientName;
   
-  const LogVisitBottomSheet({super.key, required this.patientName});
+  const LogVisitBottomSheet({
+    super.key,
+    required this.patientId,
+    required this.patientName,
+  });
 
-  static void show(BuildContext context, String patientName) {
+  static void show(BuildContext context, {required String patientId, required String patientName}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => LogVisitBottomSheet(patientName: patientName),
+      builder: (context) => LogVisitBottomSheet(
+        patientId: patientId,
+        patientName: patientName,
+      ),
     );
   }
 
@@ -37,7 +46,7 @@ class LogVisitBottomSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                state.translate('Log Visit for', 'विजिट दर्ज करें:', 'भेट नोंदवा:'),
+                state.translate('Log Home Visit', 'गृह भेंट दर्ज करें', 'घर भेट नोंदवा'),
                 style: const TextStyle(fontSize: 18, color: Colors.grey),
               ),
               IconButton(
@@ -48,26 +57,35 @@ class LogVisitBottomSheet extends StatelessWidget {
           ),
           Text(
             patientName,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           
           ListTile(
-            leading: const Icon(Icons.check_circle, color: Colors.green, size: 30),
-            title: Text(state.translate('Routine Checkup', 'नियमित जांच', 'नियमित तपासणी')),
-            onTap: () => _logAndClose(context, 'Routine'),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            tileColor: Colors.green.shade50,
+            leading: const Icon(Icons.check_circle, color: Colors.green, size: 28),
+            title: Text(state.translate('Routine ANC Visit', 'नियमित प्रसवपूर्व जांच', 'नियमित तपासणी भेट'), style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(state.translate('Diet advice, medicine supply checked', 'आहार सलाह, दवा आपूर्ति की जांच', 'आहार सल्ला, औषध पुरवठा तपासला')),
+            onTap: () => _logAndClose(context, 'Routine ANC checkup conducted by ASHA. Mother counselled on nutrition.'),
           ),
-          const Divider(),
+          const SizedBox(height: 12),
           ListTile(
-            leading: const Icon(Icons.warning, color: Colors.orange, size: 30),
-            title: Text(state.translate('Follow-up (Missed Meds)', 'फॉलो-अप (दवा छूटी)', 'फॉलो-अप (औषध चुकले)')),
-            onTap: () => _logAndClose(context, 'Follow-up'),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            tileColor: Colors.orange.shade50,
+            leading: const Icon(Icons.medication, color: Colors.orange, size: 28),
+            title: Text(state.translate('Follow-up (Missed Meds)', 'फॉलो-अप (दवा छूटी)', 'फॉलो-अप (औषध चुकले)'), style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(state.translate('Encouraged patient to resume Iron/Calcium daily', 'रोगी को दैनिक आयरन/कैल्शियम लेने के लिए प्रेरित किया', 'रुग्णाला दररोज आयर्न/कॅल्शियम घेण्यास प्रोत्साहित केले')),
+            onTap: () => _logAndClose(context, 'Medicine adherence follow-up visit. Reminded mother on benefits of daily Iron & Calcium.'),
           ),
-          const Divider(),
+          const SizedBox(height: 12),
           ListTile(
-            leading: const Icon(Icons.emergency, color: Colors.red, size: 30),
-            title: Text(state.translate('Emergency/HRP Visit', 'आपातकालीन विजिट', 'तातडीची भेट')),
-            onTap: () => _logAndClose(context, 'Emergency'),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            tileColor: Colors.red.shade50,
+            leading: const Icon(Icons.emergency, color: Colors.red, size: 28),
+            title: Text(state.translate('Emergency/HRP Visit', 'आपातकालीन/HRP विजिट', 'तातडीची भेट (HRP)'), style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(state.translate('High risk detected, escalation to ANM required', 'उच्च जोखिम की पहचान, एएनएम को रेफरल आवश्यक', 'उच्च धोका आढळला, एएनएमकडे पाठवणे आवश्यक')),
+            onTap: () => _logAndClose(context, 'Urgent high-risk checkup. Clinical review initiated.'),
           ),
           const SizedBox(height: 32),
         ],
@@ -75,16 +93,29 @@ class LogVisitBottomSheet extends StatelessWidget {
     );
   }
 
-  void _logAndClose(BuildContext context, String type) {
-    // Here we would write to LocalDb (Hive) for offline sync
-    // LocalDb.visitsBox.add({'patient': patientName, 'type': type, 'timestamp': DateTime.now().toIso8601String()});
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Visit logged successfully (Offline Sync Queued)'),
-        backgroundColor: Colors.green,
-      )
+  Future<void> _logAndClose(BuildContext context, String notes) async {
+    final state = AppState.instance;
+    await VisitRepository.instance.logVisit(
+      patientId: patientId,
+      recordedBy: 'asha-savita',
+      recordedByRole: 'asha',
+      visitDate: DateTime.now(),
+      notes: notes,
     );
-    Navigator.pop(context);
+
+    if (context.mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(state.translate(
+            'Visit logged successfully (Offline Sync Queued)',
+            'विजिट सफलतापूर्वक दर्ज की गई (ऑफ़लाइन सिंक कतारबद्ध)',
+            'भेट यशस्वीरित्या नोंदवली गेली (ऑफलाइन सिंक रांगेत)',
+          )),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 }

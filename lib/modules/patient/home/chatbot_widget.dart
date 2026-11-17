@@ -518,7 +518,7 @@ class _ChatbotWidgetState extends State<ChatbotWidget>
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: _faqs.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (context, index) => const SizedBox(width: 8),
               itemBuilder: (context, i) {
                 final faq = _faqs[i];
                 return GestureDetector(

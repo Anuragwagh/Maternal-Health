@@ -1,9 +1,10 @@
-/// medicine_store.dart
-/// Singleton in-memory store that tracks which medicines the patient has marked
-/// as taken on each calendar date.
-library medicine_store;
+// medicine_store.dart
+// Singleton in-memory and Hive-backed store that tracks which medicines
+// the patient has marked as taken on each calendar date.
 
 import 'package:flutter/foundation.dart';
+import '../../../core/database/local_db.dart';
+import '../../../core/repositories/medicine_repository.dart';
 
 /// The fixed list of assigned medicines.
 class AssignedMedicine {
@@ -54,7 +55,9 @@ const List<AssignedMedicine> _assignedList = [
 // ── Singleton store ──────────────────────────────────────────────────────────
 
 class MedicineStore extends ChangeNotifier {
-  MedicineStore._();
+  MedicineStore._() {
+    initFromHive();
+  }
   static final MedicineStore instance = MedicineStore._();
 
   // Key: 'YYYY-MM-DD', Value: Set of medicine IDs taken that day
@@ -65,6 +68,38 @@ class MedicineStore extends ChangeNotifier {
   String _key(DateTime date) =>
       '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
+  String _resolveMedicineName(String medicineId) {
+    switch (medicineId) {
+      case 'calcium':
+        return 'Calcium';
+      case 'iron':
+        return 'Iron';
+      case 'folicacid':
+      default:
+        return 'Folic Acid';
+    }
+  }
+
+  /// Populate state from persistent Hive box
+  void initFromHive() {
+    try {
+      final box = LocalDb.medicinesBox;
+      for (final raw in box.values) {
+        final map = Map<String, dynamic>.from(raw as Map);
+        if (map['taken'] == true) {
+          final logDate = map['log_date']?.toString() ?? '';
+          final medName = map['medicine']?.toString().toLowerCase().replaceAll(' ', '') ?? '';
+          if (logDate.isNotEmpty) {
+            _log.putIfAbsent(logDate, () => {});
+            _log[logDate]!.add(medName);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading medicines from Hive: $e');
+    }
+  }
+
   /// Mark or unmark a medicine for today.
   void toggle(String medicineId, DateTime date) {
     final key = _key(date);
@@ -74,6 +109,14 @@ class MedicineStore extends ChangeNotifier {
     } else {
       _log[key]!.add(medicineId);
     }
+
+    // Persist to Hive & sync to outbox in background
+    MedicineRepository.instance.toggleMedicine(
+      patientId: MedicineRepository.demoPatientId,
+      medicine: _resolveMedicineName(medicineId),
+      date: date,
+    );
+
     notifyListeners();
   }
 

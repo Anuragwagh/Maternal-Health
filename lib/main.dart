@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'modules/common/role_selection_screen.dart';
 import 'modules/common/language_selection_screen.dart';
 import 'modules/patient/auth/login_screen.dart';
@@ -7,24 +8,50 @@ import 'modules/patient/home/patient_home_screen.dart';
 import 'modules/asha/auth/asha_login_screen.dart';
 import 'modules/asha/auth/asha_pin_login_screen.dart';
 import 'modules/asha/home/asha_home_screen.dart';
+import 'modules/anm/home/anm_home_screen.dart';
 import 'modules/common/consent_screen.dart';
 import 'modules/supervisor/home/supervisor_dashboard_screen.dart';
 import 'modules/caregiver/home/caregiver_home_screen.dart';
 import 'modules/asha/incentives/incentive_tracker_screen.dart';
 import 'app_state.dart';
 import 'modules/patient/home/medicine_store.dart';
-import 'package:provider/provider.dart';
 import 'core/database/local_db.dart';
+import 'core/network/supabase_service.dart';
+import 'core/repositories/patient_repository.dart';
+import 'core/repositories/medicine_repository.dart';
+import 'core/repositories/alert_repository.dart';
+import 'core/repositories/auth_repository.dart';
+import 'core/services/sync_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 1. Initialize Local Hive Database & Outbox
   await LocalDb.init();
+
+  // 2. Initialize Supabase Backend Service (with offline resilience)
+  await SupabaseService.instance.init();
+
+  // 3. Initialize Offline Sync Manager
+  await SyncService.instance.init();
+
+  // 4. Populate default offline caches if first boot
+  await PatientRepository.instance.ensureCachePopulated();
+  await MedicineRepository.instance.ensureCachePopulated();
+  await AlertRepository.instance.ensureCachePopulated();
+
+  // 5. Restore existing session if logged in
+  final session = await AuthRepository.instance.loadSession();
+  if (session != null) {
+    AppState.instance.setUser(session);
+  }
   
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: AppState.instance),
         ChangeNotifierProvider.value(value: MedicineStore.instance),
+        ChangeNotifierProvider.value(value: SyncService.instance),
       ],
       child: const MaternalHealthApp(),
     ),
@@ -99,6 +126,7 @@ class MaternalHealthApp extends StatelessWidget {
             '/asha_login': (context) => const AshaLoginScreen(),
             '/asha_pin_login': (context) => const AshaPinLoginScreen(),
             '/asha_home': (context) => const AshaHomeScreen(),
+            '/anm_home': (context) => const AnmHomeScreen(),
             '/incentive_tracker': (context) => const IncentiveTrackerScreen(),
             '/supervisor_home': (context) => const SupervisorDashboardScreen(),
             '/caregiver_home': (context) => const CaregiverHomeScreen(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'diet_plan_screen.dart';
 import 'vaccine_screen.dart';
 import 'medicine_screen.dart';
@@ -7,6 +8,9 @@ import 'chatbot_widget.dart';
 import 'nearest_clinic_screen.dart';
 import '../../../app_state.dart';
 import '../emergency/sos_bottom_sheet.dart';
+import 'symptom_logger_sheet.dart';
+import '../../../core/services/closed_loop_service.dart';
+import '../../../core/widgets/sync_status_badge.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   const PatientHomeScreen({super.key});
@@ -19,7 +23,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = AppState.instance;
+    final state = context.watch<AppState>();
     
     // Calculate days to next 9th of the month (PMSMA date)
     final now = DateTime.now();
@@ -33,8 +37,80 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       backgroundColor: const Color(0xFFFFF9F9),
       appBar: AppBar(
         title: Text(state.translate('Maternal Care', 'मातृत्व देखभाल', 'मातृत्व काळजी')),
-        centerTitle: true,
+        centerTitle: false,
         actions: [
+          const SyncStatusBadge(),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            tooltip: 'Demo Controls',
+            onSelected: (val) async {
+              if (val == 'simulate') {
+                await ClosedLoopService.instance.simulateConsecutiveMissedDays();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Simulated 4 missed medicine days! ASHA Alert triggered.'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+              } else if (val == 'reset') {
+                await ClosedLoopService.instance.resetDemoLoop();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Demo scenario reset to baseline.')),
+                  );
+                }
+              } else if (val == 'lang_en') {
+                AppState.instance.setLanguage(AppLanguage.english);
+              } else if (val == 'lang_mr') {
+                AppState.instance.setLanguage(AppLanguage.marathi);
+              } else if (val == 'lang_hi') {
+                AppState.instance.setLanguage(AppLanguage.hindi);
+              }
+            },
+            itemBuilder: (ctx) => const [
+              PopupMenuItem(
+                value: 'simulate',
+                child: Text('⚡ Simulate 4 Missed Days (Demo)'),
+              ),
+              PopupMenuItem(
+                value: 'reset',
+                child: Text('🔄 Reset Demo Scenario'),
+              ),
+              PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'lang_mr',
+                child: Row(
+                  children: [
+                    Icon(Icons.translate, size: 16, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text('मराठी (Marathi)'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'lang_hi',
+                child: Row(
+                  children: [
+                    Icon(Icons.translate, size: 16, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text('हिंदी (Hindi)'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'lang_en',
+                child: Row(
+                  children: [
+                    Icon(Icons.translate, size: 16, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text('English'),
+                  ],
+                ),
+              ),
+            ],
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: GestureDetector(
@@ -145,6 +221,15 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               Icons.local_hospital_outlined,
               Theme.of(context).colorScheme.tertiary,
               () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NearestClinicScreen())),
+            ),
+            const SizedBox(height: 20),
+            _buildActionCard(
+              context,
+              state.translate('Report Symptoms', 'लक्षण रिपोर्ट करें', 'लक्षणे नोंदवा'),
+              state.translate('Track health & danger signs', 'स्वास्थ्य और खतरे के लक्षण ट्रैक करें', 'आरोग्य आणि धोक्याची लक्षणे नोंदवा'),
+              Icons.healing_outlined,
+              const Color(0xFFFFC6FF),
+              () => SymptomLoggerSheet.show(context),
             ),
             const SizedBox(height: 32),
 

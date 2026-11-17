@@ -1,0 +1,252 @@
+[
+  {
+    "id": "CASE-01",
+    "description": "Primi mother, age 22, normal vitals, no risk flags",
+    "inputs": { "age": 22, "systolic": 112, "diastolic": 72, "hemoglobin": 12.2 },
+    "expected_level": "low",
+    "expected_score": 0,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-02",
+    "description": "Multi mother, age 27, normal vitals",
+    "inputs": { "age": 27, "systolic": 118, "diastolic": 76, "hemoglobin": 11.5 },
+    "expected_level": "low",
+    "expected_score": 0,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-03",
+    "description": "Teenage pregnancy (age 17), normal vitals",
+    "inputs": { "age": 17, "systolic": 114, "diastolic": 74, "hemoglobin": 11.6 },
+    "expected_level": "low",
+    "expected_score": 2,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-04",
+    "description": "Elderly gravida (age 36), normal vitals",
+    "inputs": { "age": 36, "systolic": 118, "diastolic": 78, "hemoglobin": 12.0 },
+    "expected_level": "low",
+    "expected_score": 2,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-05",
+    "description": "Severe Anemia override (Hb 6.4 g/dL)",
+    "inputs": { "age": 25, "systolic": 110, "diastolic": 70, "hemoglobin": 6.4 },
+    "expected_level": "high",
+    "expected_immediate_danger": true
+  },
+  {
+    "id": "CASE-06",
+    "description": "Severe Hypertension override (BP 164/112 mmHg)",
+    "inputs": { "age": 28, "systolic": 164, "diastolic": 112, "hemoglobin": 11.0 },
+    "expected_level": "high",
+    "expected_immediate_danger": true
+  },
+  {
+    "id": "CASE-07",
+    "description": "Vaginal bleeding reported override",
+    "inputs": { "age": 24, "dangerSigns": ["vaginal_bleeding"] },
+    "expected_level": "high",
+    "expected_immediate_danger": true
+  },
+  {
+    "id": "CASE-08",
+    "description": "Convulsions / Eclampsia reported override",
+    "inputs": { "age": 23, "dangerSigns": ["convulsions"] },
+    "expected_level": "high",
+    "expected_immediate_danger": true
+  },
+  {
+    "id": "CASE-09",
+    "description": "Severe headache with visual disturbance override",
+    "inputs": { "age": 26, "dangerSigns": ["severe_headache_visual"] },
+    "expected_level": "high",
+    "expected_immediate_danger": true
+  },
+  {
+    "id": "CASE-10",
+    "description": "Absent fetal movement reported override",
+    "inputs": { "age": 29, "dangerSigns": ["absent_fetal_movement"] },
+    "expected_level": "high",
+    "expected_immediate_danger": true
+  },
+  {
+    "id": "CASE-11",
+    "description": "Stage 1 Hypertension (BP 144/92 mmHg)",
+    "inputs": { "age": 25, "systolic": 144, "diastolic": 92, "hemoglobin": 11.5 },
+    "expected_level": "moderate",
+    "expected_score": 3,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-12",
+    "description": "Moderate Anemia (Hb 8.4 g/dL)",
+    "inputs": { "age": 24, "systolic": 110, "diastolic": 70, "hemoglobin": 8.4 },
+    "expected_level": "low",
+    "expected_score": 2,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-13",
+    "description": "Mild Anemia (Hb 10.4 g/dL)",
+    "inputs": { "age": 25, "systolic": 112, "diastolic": 72, "hemoglobin": 10.4 },
+    "expected_level": "low",
+    "expected_score": 1,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-14",
+    "description": "Previous C-Section history",
+    "inputs": { "age": 28, "previousCSection": true },
+    "expected_level": "low",
+    "expected_score": 2,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-15",
+    "description": "Previous Stillbirth history",
+    "inputs": { "age": 29, "stillbirthHistory": true },
+    "expected_level": "low",
+    "expected_score": 2,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-16",
+    "description": "Previous Pregnancy Loss history",
+    "inputs": { "age": 27, "pregnancyLossHistory": true },
+    "expected_level": "low",
+    "expected_score": 2,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-17",
+    "description": "Previous Postpartum Hemorrhage history",
+    "inputs": { "age": 26, "postpartumHemorrhageHistory": true },
+    "expected_level": "low",
+    "expected_score": 2,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-18",
+    "description": "Twin pregnancy alone",
+    "inputs": { "age": 24, "isTwin": true },
+    "expected_level": "moderate",
+    "expected_score": 3,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-19",
+    "description": "Twin pregnancy + Teenage pregnancy (age 17)",
+    "inputs": { "age": 17, "isTwin": true },
+    "expected_level": "high",
+    "expected_score": 5,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-20",
+    "description": "Gestational Diabetes mellitus",
+    "inputs": { "age": 28, "hasDiabetes": true },
+    "expected_level": "low",
+    "expected_score": 2,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-21",
+    "description": "Rh-negative blood group",
+    "inputs": { "age": 24, "isRhNegative": true },
+    "expected_level": "low",
+    "expected_score": 1,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-22",
+    "description": "Consecutive missed medicines 4 days",
+    "inputs": { "age": 25, "consecutiveMissedMedsDays": 4 },
+    "expected_level": "low",
+    "expected_score": 2,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-23",
+    "description": "Consecutive missed medicines 8 days",
+    "inputs": { "age": 25, "consecutiveMissedMedsDays": 8 },
+    "expected_level": "moderate",
+    "expected_score": 3,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-24",
+    "description": "Overdue ANC checkup visit",
+    "inputs": { "age": 24, "isOverdueAnc": true },
+    "expected_level": "low",
+    "expected_score": 1,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-25",
+    "description": "Systolic BP surging >= 20 mmHg across consecutive visits",
+    "inputs": { "age": 26, "systolic": 136, "previousSystolic": 112 },
+    "expected_level": "low",
+    "expected_score": 2,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-26",
+    "description": "Hemoglobin falling >= 1.0 g/dL between visits",
+    "inputs": { "age": 26, "hemoglobin": 10.2, "previousHemoglobin": 11.6 },
+    "expected_level": "low",
+    "expected_score": 2,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-27",
+    "description": "Moderate Anemia (Hb 8.5) + Missed Medicines 4 days -> Moderate Risk (Score 4)",
+    "inputs": { "age": 26, "hemoglobin": 8.5, "consecutiveMissedMedsDays": 4 },
+    "expected_level": "moderate",
+    "expected_score": 4,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-28",
+    "description": "Teenage pregnancy (17) + Stage 1 BP (144/94) -> High Risk (Score 5)",
+    "inputs": { "age": 17, "systolic": 144, "diastolic": 94 },
+    "expected_level": "high",
+    "expected_score": 5,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-29",
+    "description": "Obstetric cap (C-section + Stillbirth + Loss = 4 max) + Mild Anemia (1 pt) -> High Risk (Score 5)",
+    "inputs": { "age": 26, "previousCSection": true, "stillbirthHistory": true, "pregnancyLossHistory": true, "hemoglobin": 10.5 },
+    "expected_level": "high",
+    "expected_score": 5,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-30",
+    "description": "Elderly gravida (36) + Rh neg + Diabetes + Overdue visit -> High Risk (Score 6)",
+    "inputs": { "age": 36, "isRhNegative": true, "hasDiabetes": true, "isOverdueAnc": true },
+    "expected_level": "high",
+    "expected_score": 6,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-31",
+    "description": "Moderate Anemia (8.6) + BP surge (22 mmHg) + 7 days missed meds -> High Risk (Score 7)",
+    "inputs": { "age": 25, "hemoglobin": 8.6, "systolic": 134, "previousSystolic": 110, "consecutiveMissedMedsDays": 7 },
+    "expected_level": "high",
+    "expected_score": 7,
+    "expected_immediate_danger": false
+  },
+  {
+    "id": "CASE-32",
+    "description": "Normal healthy baseline control",
+    "inputs": { "age": 23, "systolic": 115, "diastolic": 75, "hemoglobin": 12.4 },
+    "expected_level": "low",
+    "expected_score": 0,
+    "expected_immediate_danger": false
+  }
+]

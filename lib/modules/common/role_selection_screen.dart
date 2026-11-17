@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../app_state.dart';
+import '../../core/models/app_user.dart';
+import '../../core/repositories/auth_repository.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
+
+  void _selectRole(BuildContext context, UserRole role, String route) async {
+    final user = await AuthRepository.instance.loginAsDemoRole(role);
+    AppState.instance.setUser(user);
+    if (context.mounted) {
+      Navigator.pushNamed(context, route);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,11 +76,20 @@ class RoleSelectionScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 _buildRoleCard(
                   context,
+                  state.translate('I am an ANM', 'मैं एएनएम हूँ', 'मी एएनएम आहे'),
+                  state.translate('Nurse Midwife (Clinical)', 'नर्स मिडवाइफ (नैदानिक)', 'नर्स मिडवाइफ (क्लिनिकल)'),
+                  Icons.local_hospital,
+                  const Color(0xFF0077B6),
+                  () => _selectRole(context, UserRole.anm, '/anm_home'),
+                ),
+                const SizedBox(height: 20),
+                _buildRoleCard(
+                  context,
                   state.translate('I am a Supervisor', 'मैं पर्यवेक्षक हूँ', 'मी पर्यवेक्षक आहे'),
                   state.translate('PHC Official', 'PHC अधिकारी', 'PHC अधिकारी'),
                   Icons.admin_panel_settings,
                   const Color(0xFF005B96), // Darker medical blue
-                  () => Navigator.pushNamed(context, '/supervisor_home'),
+                  () => _selectRole(context, UserRole.supervisor, '/supervisor_home'),
                 ),
                 const SizedBox(height: 20),
                 _buildRoleCard(
@@ -79,7 +98,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   state.translate('Family Member', 'परिवार के सदस्य', 'कुटुंबातील सदस्य'),
                   Icons.family_restroom,
                   const Color(0xFF48CAE4), // Soft cyan
-                  () => Navigator.pushNamed(context, '/caregiver_home'),
+                  () => _selectRole(context, UserRole.caregiver, '/caregiver_home'),
                 ),
 
                 const SizedBox(height: 40),
